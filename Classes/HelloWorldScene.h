@@ -13,6 +13,7 @@ public:
 
 	virtual bool init();
 	void enemy();
+	void score();
 	bool onContactBegin(cocos2d::PhysicsContact &contact);
 	void setViewPointCenter(cocos2d::Point position);
 	// a selector callback

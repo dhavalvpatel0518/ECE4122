@@ -2,7 +2,7 @@
 #include "SimpleAudioEngine.h"
 
 USING_NS_CC;
-
+int score = 0;
 Scene* HelloWorld::createScene()
 {
 	return HelloWorld::create();
@@ -56,6 +56,25 @@ bool HelloWorld::init()
 		closeItem->setPosition(Vec2(x, y));
 	}
 
+
+
+
+	auto label = Label::createWithTTF("Score", "fonts/CircularStd-Black.otf", 24);
+	label->setTextColor(Color4B(255, 0 , 100,255 ));
+	if (label == nullptr)
+	{
+		problemLoading("'fonts/CircularStd-Black.otf'");
+	}
+	else
+	{
+		// position the label on the center of the screen
+		label->setPosition(Vec2(origin.x -50 + visibleSize.width / 2,
+			origin.y - 20 + visibleSize.height - label->getContentSize().height));
+
+		// add the label as a child to this layer
+		this->addChild(label, 1);
+	}
+
 	// create menu, it's an autorelease object
 	auto menu = Menu::create(closeItem, NULL);
 	menu->setPosition(Vec2::ZERO);
@@ -105,52 +124,21 @@ bool HelloWorld::init()
 	CCPoint mapPos = map->getPosition();
 	CCPoint newMapPos = mapPos;
 	CCPoint ws = convertToWorldSpace(player->getPosition());
-	enemy();
-
-	/*
-	Size size = Director::sharedDirector()->getVisibleSize();  //default screen size (or design resolution size, if you are using design resolution)
-	Point center = Point(size.width / 2 + origin.x, size.height / 2 + origin.y);
-	float playfield_width = size.width * 2.0; // make the x-boundry 2 times the screen width
-	float playfield_height = size.height * 2.0; // make the y-boundry 2 times the screen height
-	map->runAction(Follow::create(player, Rect(center.x-playfield_width/2, center.y-playfield_height/2, playfield_width, playfield_height)));
-	auto mapSize = map->getMapSize();
-	float kMarginHorizontalPercent = .5;
-	float kMarginVerticalPercent = .5;
-	float limitLeft = mapPos.x + mapSize.width*(1 - kMarginHorizontalPercent);
-	float limitRight = mapPos.x + mapSize.width*kMarginHorizontalPercent;
-
-	if (limitLeft > playerPos.x)
-	newMapPos.x = (mapPos.x - (limitLeft - playerPos.x))*-1;
-	else if (limitRight < playerPos.x)
-	newMapPos.x = (mapPos.x + (playerPos.x - limitRight))*-1;
-
-	float limitBottom = mapPos.y + mapSize.height*(1 - kMarginVerticalPercent);
-	float limitUpper = mapPos.y + mapSize.height*kMarginVerticalPercent;
-
-	if (limitBottom > playerPos.y)
-	newMapPos.y = (mapPos.y - (limitBottom - playerPos.y))*-1;
-	else if (limitUpper < playerPos.y)
-	newMapPos.y = (mapPos.y + (playerPos.y - limitUpper))*-1;
-
-	map->setPosition(newMapPos);
-	*/
-	//	map->runAction(Follow::create(player));
 
 	auto enemy1 = Sprite::create("UGAB_1.png");
-	enemy1->setTag(111);
 
 	enemy1->setPosition(Vec2(100, 200));
-	//wrong collision detection
-	//auto EB = PhysicsBody::createBox(enemy1->getContentSize(), PhysicsMaterial(0, 1, 0));
-	//EB->setCollisionBitmask(2);
-	//EB->setContactTestBitmask(true);
-	//enemy1->setPhysicsBody(EB);
+
 	this->addChild(enemy1);
 
-	//auto att = DrawNode::create();
-	//att->drawLine(Vec2(200, 200), Vec2(200, 500), Color4F(1.0f, 0.0f, 0.0f, 1.0f));
-	//this->addChild(att);
-	//mouse 
+	//Health that was not implemented
+	/*
+	auto health = Sprite::create("health.png");
+
+	health->setPosition(Vec2(100, 400));
+
+	this->addChild(health);
+	*/
 	mouseListener->onMouseDown = [enemy1](Event* event)
 	{
 		if (enemy1->getBoundingBox().containsPoint(event->getCurrentTarget()->getPosition()))
@@ -161,13 +149,13 @@ bool HelloWorld::init()
 	};
 	Director::getInstance()->getEventDispatcher()->addEventListenerWithSceneGraphPriority(mouseListener, enemy1);
 	
+
 	auto origion = MoveTo::create(2, Vec2(100, 200));
 	auto moveleft = MoveTo::create(2, Vec2(50, 200));
 	//enemy1->runAction(moveleft);
 
 	auto moveright = MoveTo::create(2, Vec2(250, 200));
 	//enemy1->runAction(moveright); 
-	//(enemy1->getTag() == 111)
 
 	auto seq = RepeatForever::create (Sequence::create((DelayTime::create(2)), moveleft, origion, moveright, origion, nullptr));
 	if(enemy1 != nullptr)
@@ -222,6 +210,20 @@ bool HelloWorld::init()
 
 	return true;
 }
+/*
+void HelloWorld::score()
+{
+
+	float time = 0.03;
+	char* name = "Michael";
+	char text[256];
+	sprintf(text, "name is %s, time is %.2f, score is %d", name, time, score);
+	ttf->setString(CCString::createWithFormat("%d, %s", 123, "Hello")->getCString());
+	auto label1 = LabelTTF::initWithString(text, "Arial", 20);
+	this->addChild(label1);
+}
+
+*/
 
 void HelloWorld::enemy()
 {
