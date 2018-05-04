@@ -24,6 +24,11 @@ bool HelloWorld::init()
 	{
 		return false;
 	}
+	/*
+	if (!Scene::initWithPhysics()) {
+		return false;
+	}
+	*/
 
 	auto visibleSize = Director::getInstance()->getVisibleSize();
 	Vec2 origin = Director::getInstance()->getVisibleOrigin();
@@ -59,70 +64,131 @@ bool HelloWorld::init()
 	/////////////////////////////
 	// 3. add your codes below...
 
-	// add a label shows "Hello World"
-	// create and initialize a label
 
-	auto label = Label::createWithTTF("Hello World", "fonts/Marker Felt.ttf", 24);
-	if (label == nullptr)
-	{
-		problemLoading("'fonts/Marker Felt.ttf'");
-	}
-	else
-	{
-		// position the label on the center of the screen
-		label->setPosition(Vec2(origin.x + visibleSize.width / 2,
-			origin.y + visibleSize.height - label->getContentSize().height));
 
-		// add the label as a child to this layer
-		this->addChild(label, 1);
-	}
-
-	// add "HelloWorld" splash screen"
+	// add created tiled map
 	auto map = TMXTiledMap::create("MapAttemptTrial.tmx");
-
 	if (map == nullptr)
 	{
 		problemLoading("'MapAttemptTrial.tmx'");
 	}
 	else
 	{
-
-		// add the sprite as a child to this layer
+		// add map
 		this->addChild(map, 0, 99);
 	}
+	//find spawn object
 	TMXObjectGroup *objects = map->getObjectGroup("Object-Player");
 	auto SpawnPoint = objects->getObject("SpawnPoint");
 	int xC = SpawnPoint["x"].asInt();
 	int yC = SpawnPoint["y"].asInt();
-	auto player = Sprite::create("Player.png");
-	player->setPosition(Vec2(xC, yC));
-	this->addChild(player, 1);
+	//read in player sprite now that spawn location has been determined
+	auto player = Sprite::create("GeorgiaTech.png");
+	if (player == nullptr)
+	{
+		problemLoading("GeorgiaTech.png");
+	}
+	else {
+		//wrong collision detection
+		//auto EB = PhysicsBody::createBox(player->getContentSize(), PhysicsMaterial(0, 1, 0));
+		//EB->setCollisionBitmask(1);
+		//EB->setContactTestBitmask(true);
+		//player->setPhysicsBody(EB);
+		player->setPosition(Vec2(xC, yC));
+		this->addChild(player, 5);
+	}
+	//map->setPosition(convertToWorldSpace(player->getPosition()));
+
 	auto eventListener = EventListenerKeyboard::create();
+	auto mouseListener = EventListenerMouse::create();
 	CCPoint playerPos = player->getPosition();
 	CCPoint mapPos = map->getPosition();
 	CCPoint newMapPos = mapPos;
+	CCPoint ws = convertToWorldSpace(player->getPosition());
+	enemy();
+
+	/*
+	Size size = Director::sharedDirector()->getVisibleSize();  //default screen size (or design resolution size, if you are using design resolution)
+	Point center = Point(size.width / 2 + origin.x, size.height / 2 + origin.y);
+	float playfield_width = size.width * 2.0; // make the x-boundry 2 times the screen width
+	float playfield_height = size.height * 2.0; // make the y-boundry 2 times the screen height
+	map->runAction(Follow::create(player, Rect(center.x-playfield_width/2, center.y-playfield_height/2, playfield_width, playfield_height)));
 	auto mapSize = map->getMapSize();
-	float kMarginHorizontalPercent = .8;
-	float kMarginVerticalPercent = .8;
+	float kMarginHorizontalPercent = .5;
+	float kMarginVerticalPercent = .5;
 	float limitLeft = mapPos.x + mapSize.width*(1 - kMarginHorizontalPercent);
 	float limitRight = mapPos.x + mapSize.width*kMarginHorizontalPercent;
 
 	if (limitLeft > playerPos.x)
-		newMapPos.x = (mapPos.x - (limitLeft - playerPos.x))*-1;
+	newMapPos.x = (mapPos.x - (limitLeft - playerPos.x))*-1;
 	else if (limitRight < playerPos.x)
-		newMapPos.x = (mapPos.x + (playerPos.x - limitRight))*-1;
+	newMapPos.x = (mapPos.x + (playerPos.x - limitRight))*-1;
 
 	float limitBottom = mapPos.y + mapSize.height*(1 - kMarginVerticalPercent);
 	float limitUpper = mapPos.y + mapSize.height*kMarginVerticalPercent;
 
 	if (limitBottom > playerPos.y)
-		newMapPos.y = (mapPos.y - (limitBottom - playerPos.y))*-1;
+	newMapPos.y = (mapPos.y - (limitBottom - playerPos.y))*-1;
 	else if (limitUpper < playerPos.y)
-		newMapPos.y = (mapPos.y + (playerPos.y - limitUpper))*-1;
+	newMapPos.y = (mapPos.y + (playerPos.y - limitUpper))*-1;
 
 	map->setPosition(newMapPos);
+	*/
+	//	map->runAction(Follow::create(player));
 
+	auto enemy1 = Sprite::create("UGAB_1.png");
+	enemy1->setTag(111);
 
+	enemy1->setPosition(Vec2(100, 200));
+	//wrong collision detection
+	//auto EB = PhysicsBody::createBox(enemy1->getContentSize(), PhysicsMaterial(0, 1, 0));
+	//EB->setCollisionBitmask(2);
+	//EB->setContactTestBitmask(true);
+	//enemy1->setPhysicsBody(EB);
+	this->addChild(enemy1);
+
+	//auto att = DrawNode::create();
+	//att->drawLine(Vec2(200, 200), Vec2(200, 500), Color4F(1.0f, 0.0f, 0.0f, 1.0f));
+	//this->addChild(att);
+	//mouse 
+	mouseListener->onMouseDown = [enemy1](Event* event)
+	{
+		if (enemy1->getBoundingBox().containsPoint(event->getCurrentTarget()->getPosition()))
+		{
+			enemy1->removeFromParentAndCleanup(true);
+			//enemy1->setPosition(enemy1->getPosition() + Point(10, 0));
+		}
+	};
+	Director::getInstance()->getEventDispatcher()->addEventListenerWithSceneGraphPriority(mouseListener, enemy1);
+	
+	auto origion = MoveTo::create(2, Vec2(100, 200));
+	auto moveleft = MoveTo::create(2, Vec2(50, 200));
+	//enemy1->runAction(moveleft);
+
+	auto moveright = MoveTo::create(2, Vec2(250, 200));
+	//enemy1->runAction(moveright); 
+	//(enemy1->getTag() == 111)
+
+	auto seq = RepeatForever::create (Sequence::create((DelayTime::create(2)), moveleft, origion, moveright, origion, nullptr));
+	if(enemy1 != nullptr)
+	{
+		enemy1->runAction(seq);
+	}
+	
+	
+	int width_player = player->getContentSize().width;
+	int width_enemy1 = enemy1->getContentSize().width;
+	int height_player = player->getContentSize().height;
+	int height_enemy1 = enemy1->getContentSize().height;
+	if (player->getPositionX() < enemy1->getPositionX() + width_enemy1 &&
+		player->getPositionX() + width_player > enemy1->getPositionX() &&
+		player->getPositionY() < enemy1->getPositionY() + height_player &&
+		player->getPositionY()+ height_enemy1 > enemy1->getPositionY())
+	{
+		CCLOG("COLLISION HAS OCCURED");
+		enemy1->removeFromParentAndCleanup(true);
+	}
+	
 
 	eventListener->onKeyPressed = [](EventKeyboard::KeyCode keyCode, Event* event) {
 
@@ -130,20 +196,21 @@ bool HelloWorld::init()
 		switch (keyCode) {
 		case EventKeyboard::KeyCode::KEY_LEFT_ARROW:
 		case EventKeyboard::KeyCode::KEY_A:
-			event->getCurrentTarget()->setPosition(loc.x -= 10, loc.y);
+			event->getCurrentTarget()->setPosition(loc.x -= 32, loc.y);
+
 
 			break;
 		case EventKeyboard::KeyCode::KEY_RIGHT_ARROW:
 		case EventKeyboard::KeyCode::KEY_D:
-			event->getCurrentTarget()->setPosition(loc.x += 10, loc.y);
+			event->getCurrentTarget()->setPosition(loc.x += 32, loc.y);
 			break;
 		case EventKeyboard::KeyCode::KEY_UP_ARROW:
 		case EventKeyboard::KeyCode::KEY_W:
-			event->getCurrentTarget()->setPosition(loc.x, loc.y += 10);
+			event->getCurrentTarget()->setPosition(loc.x, loc.y += 32);
 			break;
 		case EventKeyboard::KeyCode::KEY_DOWN_ARROW:
 		case EventKeyboard::KeyCode::KEY_S:
-			event->getCurrentTarget()->setPosition(loc.x, loc.y -= 10);
+			event->getCurrentTarget()->setPosition(loc.x, loc.y -= 32);
 			break;
 		}
 
@@ -151,11 +218,61 @@ bool HelloWorld::init()
 	};
 
 	this->_eventDispatcher->addEventListenerWithSceneGraphPriority(eventListener, player);
+	
 
 	return true;
 }
 
+void HelloWorld::enemy()
+{
+	/*
+	auto enemy1 = Sprite::create("UGAB_1.png");
+	enemy1->setTag(111);
+	if (enemy1 == nullptr)
+	{
+		problemLoading("UGAB_1.jpg");
+	}
+	else {
+		enemy1->setPosition(Vec2(100, 200));
+		//wrong collision detection
+		//auto EB = PhysicsBody::createBox(enemy1->getContentSize(), PhysicsMaterial(0, 1, 0));
+		//EB->setCollisionBitmask(2);
+		//EB->setContactTestBitmask(true);
+		//enemy1->setPhysicsBody(EB);
+		this->addChild(enemy1);
+	}
+	
+	auto origion = MoveTo::create(2, Vec2(100, 200));
+	auto moveleft = MoveTo::create(2, Vec2(50, 200));
+	//enemy1->runAction(moveleft);
 
+	auto moveright = MoveTo::create(2, Vec2(250, 200));
+	//enemy1->runAction(moveright); 
+	//(enemy1->getTag() == 111)
+
+		auto seq = Sequence::create(moveleft, origion, moveright, origion, nullptr);
+		enemy1->runAction(seq);
+		CCLOG("COLLISION HAS OCCURED");
+	*/
+	/*
+	auto contactListener = EventListenerPhysicsContact::create();
+	contactListener->onContactBegin = CC_CALLBACK_1(HelloWorld::onContactBegin, this);
+	this->getEventDispatcher()->addEventListenerWithSceneGraphPriority(contactListener, this);
+	*/
+}
+/*
+bool HelloWorld::onContactBegin(cocos2d::PhysicsContact &contact)
+{
+	PhysicsBody *a = contact.getShapeA()->getBody();
+	PhysicsBody *b = contact.getShapeB()->getBody();
+	//check
+	if ((1 == a->getCategoryBitmask() && 2 == b->getCategoryBitmask()) || ( 2 == a->getCategoryBitmask() && 1 == b->getCategoryBitmask()) )
+	{
+		CCLOG("COLLISION HAS OCCURED");
+	}
+	return true; 
+}
+*/
 void HelloWorld::menuCloseCallback(Ref* pSender)
 {
 	//Close the cocos2d-x game scene and quit the application
